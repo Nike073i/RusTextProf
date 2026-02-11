@@ -1,16 +1,6 @@
-et_xmlfile==2.0.0
-filelock==3.20.3
-idna==3.11
-numpy==2.4.2
-openpyxl==3.1.5
-pandas==3.0.0
-platformdirs==4.5.1
-pyarrow==23.0.0
-python-dateutil==2.9.0.post0
-six==1.17.0
-soupsieve==2.8.3
-typing_extensions==4.15.0
-uritools==6.0.1
-urlextract==1.9.0
+openpyxl
+pandas
+pyarrow
+urlextract
 
 -e ../../../shared/text_utils
