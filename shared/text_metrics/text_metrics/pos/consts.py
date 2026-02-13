@@ -1,0 +1,1 @@
+set_of_pos = { "ADJ", "ADP", "ADV", "AUX", "CCONJ", "DET", "INTJ", "NOUN", "NUM", "PART", "PRON", "PROPN", "SCONJ", "VERB", "VERBPART", "VERBCONV" }
