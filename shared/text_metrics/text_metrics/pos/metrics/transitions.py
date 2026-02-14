@@ -28,7 +28,11 @@ def extract(context: DocumentContext):
         cfd[tag1][tag2] += 1
         
     counts = np.array([ cfd[condition][tag] for condition, tag in transitions ])
-    proportions = counts / counts.sum()
-    
+    all_sum = counts.sum()
+    if all_sum != 0:
+        proportions = counts / counts.sum()
+    else:
+        proportions = np.zeros_like(counts)
+
     return dict(zip(transitions, proportions.tolist()))
     
