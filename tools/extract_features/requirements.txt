@@ -1,0 +1,4 @@
+pandas
+pyarrow
+
+-e ../../shared/text_metrics
