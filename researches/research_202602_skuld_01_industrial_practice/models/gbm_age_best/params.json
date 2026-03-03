@@ -1,0 +1,1 @@
+{"model__criterion": "friedman_mse", "model__max_depth": 5, "model__max_features": 7, "model__n_estimators": 200, "model__random_state": 42}

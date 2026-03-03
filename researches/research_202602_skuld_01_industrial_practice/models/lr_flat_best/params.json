@@ -1,0 +1,1 @@
+{"model__C": 50, "model__penalty": "l2", "model__random_state": 42, "model__solver": "lbfgs", "scale_and_select__numeric__select_kbest__k": 16}

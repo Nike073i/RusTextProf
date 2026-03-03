@@ -1,0 +1,1 @@
+{"model__class_weight": "balanced", "model__criterion": "gini", "model__max_depth": 9, "model__max_features": 7, "model__n_estimators": 200, "model__random_state": 42}

@@ -1,0 +1,1 @@
+{"model__criterion": "squared_error", "model__max_depth": 8, "model__max_features": 5, "model__n_estimators": 200, "model__random_state": 42}

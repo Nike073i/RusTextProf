@@ -1,0 +1,1 @@
+{"model__C": 1, "model__class_weight": "balanced", "model__gamma": 0.2, "model__kernel": "rbf", "model__random_state": 42, "preprocessing__numeric__select_kbest__k": "all", "model__probability": true}

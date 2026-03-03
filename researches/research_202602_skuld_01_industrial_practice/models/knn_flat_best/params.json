@@ -1,0 +1,1 @@
+{"model__metric": "manhattan", "model__n_neighbors": 127, "model__weights": "quadratic_weights", "preprocessing__numeric__select_kbest__k": "all"}

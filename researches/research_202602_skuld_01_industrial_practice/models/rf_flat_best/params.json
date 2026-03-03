@@ -1,0 +1,1 @@
+{"model__class_weight": "balanced", "model__criterion": "entropy", "model__max_depth": 9, "model__max_features": 8, "model__n_estimators": 150, "model__random_state": 42}

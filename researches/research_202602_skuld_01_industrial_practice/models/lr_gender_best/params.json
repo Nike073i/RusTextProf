@@ -1,0 +1,1 @@
+{"model__C": 0.5, "model__penalty": "l1", "model__random_state": 42, "model__solver": "liblinear", "scale_and_select__numeric__select_kbest__k": "all"}
