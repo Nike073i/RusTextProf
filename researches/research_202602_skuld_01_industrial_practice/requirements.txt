@@ -1,0 +1,12 @@
+pandas
+pyarrow
+numpy
+matplotlib
+seaborn
+scikit-learn
+datawrangler
+scipy
+statsmodels
+
+-e ../../shared/predictors
+-e ../../shared/research_utils
