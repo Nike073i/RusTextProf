@@ -45,3 +45,11 @@ def extract(text):
     
     return extract_metrics(text, taggers, metrics)
     
+def flat_metrics(metrics):
+    flattened_metrics = {}
+    for category, m in metrics.items():
+        for metric, value in m.items():
+            column_name = f"{category}__{metric}"
+            flattened_metrics[column_name] = value
+            
+    return flattened_metrics
