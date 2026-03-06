@@ -1,0 +1,6 @@
+fastapi[standard]
+cachetools
+
+-e ../../shared/text_utils
+-e ../../shared/text_metrics
+-e ../../shared/predictors

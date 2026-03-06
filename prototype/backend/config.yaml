@@ -1,0 +1,8 @@
+profiling:
+  models:
+    - id: cascade_svc_poly_svc_rbf
+      path: ../../researches/research_202602_skuld_01_industrial_practice/predictors/cascade_svc_poly_svc_rbf/model.pkl
+      name: Каскадная модель А
+    - id: flat_svc_rbf
+      path: ../../researches/research_202602_skuld_01_industrial_practice/predictors/flat_svc_rbf/model.pkl
+      name: Плоская модель Б
