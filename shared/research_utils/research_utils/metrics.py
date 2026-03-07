@@ -1,5 +1,4 @@
-from sklearn.base import accuracy_score
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 def classif_scores(y_true, y_pred):
     accuracy = accuracy_score(y_true, y_pred)
@@ -12,4 +11,3 @@ def classif_scores(y_true, y_pred):
         'recall': recall,
         'f1': f1
     }
-
