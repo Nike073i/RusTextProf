@@ -1,0 +1,22 @@
+<div class="models">
+    {{#each models.best }}
+    <div class="model">
+        <div class="model__header">
+            <h3 class="model__name">{{ name }}</h3>
+        </div>
+        <div class="model__body">
+            <p class="model__description">{{ description }}</p>
+            <p class="model__recommendations-title">Для текстов:</p>
+            <ul class="model__recommendations">
+                {{#each recommendations }}
+                <li class="model__recommendation">{{ this }}</li>
+                {{/each}}
+            </ul>
+        </div>
+        <div class="model__footer">
+            <a class="btn model__link" data-variant="primary" data-width="full" href="{{ link }}">О
+                модели</a>
+        </div>
+    </div> <!-- /.model-->
+    {{/each}}
+</div> <!-- /.models-->

@@ -1,0 +1,41 @@
+<div class="prediction">
+    <div class="prediction-info">
+        <h3 class="prediction-info__header">Профиль автора</h3>
+        <div class="prediction-info__body">
+            <img class="prediction-info__gender-image" id="profileImage" src="images/man.png" alt="Пол" loading="lazy">
+            <p class="prediction-info__result" id="profileDescription">
+                Взрослый мужчина
+            </p>
+        </div>
+    </div> <!-- /.prediction-info -->
+
+    <div class="prediction-info">
+        <h3 class="prediction-info__header">Пол</h3>
+        <div class="prediction-info__body">
+            {{> _scale
+            leftLabel="Женщина"
+            rightLabel="Мужчина"
+            threshold="0.55"
+            value="0.87"
+            thresholdId="predictionGenderThreshold"
+            valueId="predictionGenderValueId"
+            scaleId="predictionGenderScaleId"
+            }}
+        </div>
+    </div> <!-- /.prediction-info -->
+
+    <div class="prediction-info">
+        <h3 class="prediction-info__header">Возрастная группа</h3>
+        <div class="prediction-info__body">
+            {{> _scale
+            leftLabel="Молодой"
+            rightLabel="Взрослый"
+            threshold="0.55"
+            value="0.87"
+            thresholdId="predictionAgeThreshold"
+            valueId="predictionAgeValueId"
+            scaleId="predictionAgeScaleId"
+            }}
+        </div>
+    </div> <!-- /.prediction-info -->
+</div>

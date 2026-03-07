@@ -1,0 +1,6 @@
+{
+    "textConstraints": {
+        "minLength": 300,
+        "maxLength": 10000
+    }
+}

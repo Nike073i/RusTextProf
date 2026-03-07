@@ -1,0 +1,27 @@
+@use '../../../../shared/styles/core.scss' as b;
+@use 'sass:map';
+
+.models-info {
+    margin-bottom: var(--vertical-bottom-offset);
+}
+
+.models-info__title {
+    text-align: center;
+    font-size: 2.6rem;
+    line-height: 1.5;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.models-info__content {
+    margin-top: 1rem;
+}
+
+.models-info__text {
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.models-info__text:not(:first-child) {
+    margin-top: 1rem;
+}

@@ -1,0 +1,81 @@
+@use "../../../../shared/styles/core.scss" as b;
+
+.metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.metrics-group {
+    border: 1px solid var(--border);
+    @include b.rounded();
+
+    color: var(--text-primary);
+}
+
+.metrics-group__title {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.metrics-group__content {
+    @include b.padded;
+}
+
+.metrics-group__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    gap: 1rem;
+}
+
+.metrics-group__summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    @include b.padded;
+    
+    @include b.rounded;
+    background-color: var(--bg-secondary-darken);
+    cursor: pointer;
+    transition: all 300ms ease;
+
+    .metrics-group[open] & {
+        background-color: var(--bg-primary-lighten);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &::after {
+        content: "+";
+        
+        transition: transform 300ms ease;
+    }
+
+    .metrics-group[open] &::after {
+        transform: rotate(45deg) scale(2);
+    }
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+
+    padding: 0.5rem;
+
+    border-bottom: 2px dashed var(--border);
+}
+
+.metric__value {
+    white-space: nowrap;
+}
+
+.metric__name {
+    line-height: 1.2;
+}

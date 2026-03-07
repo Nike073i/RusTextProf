@@ -1,0 +1,19 @@
+<header class="header">
+    <div class="container">
+        <div class="navbar">
+            <a class="btn" data-variant="primary-outline" {{#ifpage 'home' }} aria-current="page" {{/ifpage}} href="/">
+                <svg class="icon btn__icon">
+                    <use xlink:href="#ai"></use>
+                </svg>
+                <span class="btn__text">Анализ текста</span>
+            </a>
+
+            <a class="btn" data-variant="primary-outline" {{#ifpage 'info' }} aria-current="page" {{/ifpage}} href="/info.html">
+                <svg class="icon btn__icon">
+                    <use xlink:href="#info"></use>
+                </svg>
+                <span class="btn__text">О моделях</span>
+            </a>
+        </div>
+    </div> <!-- /.container -->
+</header> <!-- /.header -->

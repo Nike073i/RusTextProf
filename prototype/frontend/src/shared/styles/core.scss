@@ -1,0 +1,65 @@
+$body-bg: rgb(239, 242, 247);
+
+$border: rgb(236, 238, 242);
+
+$white: rgb(255, 255, 255);
+$gold: rgb(255, 215, 0);
+
+$bg-primary: rgb(50, 118, 210);
+$bg-primary-lighten: rgb(173, 205, 255);
+$bg-secondary: rgb(254, 254, 254);
+$bg-secondary-darken: rgb(239, 239, 239);
+$bg-success: rgb(74, 165, 95);
+
+$text-primary: rgb(45, 68, 103);
+$text-primary-lighten: rgb(91, 122, 168);
+$text-secondary: rgb(252, 253, 254);
+$text-muted: rgb(173, 181, 189);
+$text-success: rgb(21, 87, 36);
+$text-error: rgb(176, 0, 32);
+
+$breakpoints: (
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+:root {
+  --body-bg: #{$body-bg};
+  --border: #{$border};
+
+  --white: #{$white};
+  --gold: #{$gold};
+
+  --bg-primary: #{$bg-primary};
+  --bg-primary-lighten: #{$bg-primary-lighten};
+  --bg-secondary: #{$bg-secondary};
+  --bg-secondary-darken: #{$bg-secondary-darken};
+  --bg-success: #{$bg-success};
+
+  --text-primary: #{$text-primary};
+  --text-primary-lighten: #{$text-primary-lighten};
+  --text-secondary: #{$text-secondary};
+  --text-muted: #{$text-muted};
+  --text-success: #{$text-success};
+  --text-error: #{$text-error};
+
+  --side-offset: 2rem;
+  --vertical-top-offset: 1.4rem;
+  --vertical-bottom-offset: 1rem;
+
+  --corner-radius: 0.8rem;
+}
+
+@mixin padded {
+  padding: var(--vertical-top-offset) var(--side-offset) var(--vertical-bottom-offset);
+}
+
+@mixin rounded {
+  border-radius: var(--corner-radius);
+}
+
+@mixin shadow {
+  box-shadow: 0 0 25px rgba(0, 0, 0, .05);
+}

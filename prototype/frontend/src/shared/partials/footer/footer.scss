@@ -1,0 +1,34 @@
+@use 'core.scss' as b;
+@use 'sass:map';
+
+.footer {
+  margin-top: auto;
+}
+
+.footer-wrapper {
+  margin: var(--vertical-top-offset) var(--side-offset) var(--vertical-bottom-offset);
+  @include b.padded;
+
+  @include b.rounded;
+  @include b.shadow;
+  background-color: var(--bg-secondary);
+}
+
+.cite-copy {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.contacts {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @media screen and (max-width: map.get(b.$breakpoints, 'sm')) {
+    flex-direction: column;
+  }
+}
+
+.contact-item__link {
+  color: var(--text-primary);
+}

@@ -1,0 +1,52 @@
+@use "core.scss" as b;
+@use "sass:map";
+
+.docs-menu {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  justify-content: center;
+  align-items: stretch;
+
+  @include b.padded;
+  @include b.rounded;
+  border: 1px solid var(--border);
+  background-color: var(--bg-secondary);
+
+  .btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 1rem 1.6rem;
+
+    .btn__text {
+      text-align: center;
+    }
+
+    .btn__icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    &[aria-current='page'] {
+      background-color: var(--bg-primary) !important;
+
+      .btn__icon {
+        fill: var(--gold);
+      }
+
+      .btn__text {
+        color: var(--gold);
+      }
+    }
+  }
+
+  @media screen and (max-width: map.get(b.$breakpoints, 'sm')) {
+    grid-template-columns: 1fr;
+    max-height: 250px;
+    overflow: auto;
+  }
+}

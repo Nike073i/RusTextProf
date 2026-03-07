@@ -1,0 +1,89 @@
+@use '../../../../shared/styles/core.scss' as b;
+@use 'sass:map';
+
+.text-analyze {
+  margin: var(--vertical-top-offset) var(--side-offset) 0;
+  @include b.padded;
+
+  @include b.rounded;
+  @include b.shadow;
+  background-color: var(--bg-secondary);
+
+  overflow: hidden;
+}
+
+.text-analyze__header {
+  text-align: center;
+  font-size: 2.6rem;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.text-analyze__actions {
+  margin-top: 1rem;
+
+  display: flex;
+  justify-content: center;
+
+  .btn {
+    border-radius: 0;
+  }
+
+  .btn:first-of-type {
+    border-top-left-radius: var(--corner-radius);
+    border-bottom-left-radius: var(--corner-radius);
+  }
+
+  .btn:last-of-type {
+    border-top-right-radius: var(--corner-radius);
+    border-bottom-right-radius: var(--corner-radius);
+  }
+}
+
+.text-analyze__text {
+  margin-top: 1rem;
+  padding: var(--vertical-bottom-offset);
+
+  display: block;
+
+  width: 100%;
+
+  border: 1px solid var(--border);
+  @include b.rounded;
+}
+
+.text-analyze__text::placeholder {
+  color: var(--text-muted);
+}
+
+.text-analyze__text:invalid:focus ~ .text-analyze__counter > #charCounter,
+.text-analyze__text:user-invalid ~ .text-analyze__counter > #charCounter {
+  color: var(--text-error);
+}
+
+.text-analyze__footer {
+  margin-top: 1rem;
+
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  gap: 1rem;
+}
+
+.text-analyze__counter {
+  margin-top: 0.6rem;
+
+  text-align: right;
+  color: var(--text-primary);
+}
+
+.text-analyze__model-selector {
+  max-width: 180px;
+
+  text-overflow: ellipsis;
+
+  @media screen and (max-width: map.get(b.$breakpoints, 'lg')) {
+    max-width: 120px;
+  }
+}

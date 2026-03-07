@@ -1,0 +1,54 @@
+@use "sass:map";
+@use "../../../../shared/styles/core" as b;
+
+.prediction {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+
+    @media screen and (max-width: map.get(b.$breakpoints, 'md')) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.prediction-info {
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--border);
+    @include b.rounded;
+}
+
+.prediction-info__header,
+.prediction-info__body {
+    @include b.padded;
+}
+
+.prediction-info__header {
+    border-bottom: 1px solid var(--border);
+}
+
+.prediction-info__gender-image {
+    display: block;
+
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+}
+
+.prediction-info__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1;
+}
+
+.prediction-info__result,
+.prediction-info__header {
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+}

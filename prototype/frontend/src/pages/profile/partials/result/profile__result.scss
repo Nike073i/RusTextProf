@@ -1,0 +1,47 @@
+@use '../../../../shared/styles/core.scss' as b;
+@use 'sass:map';
+
+.prediction-result {
+  margin: var(--vertical-top-offset) var(--side-offset) 0;
+  @include b.padded;
+
+  @include b.rounded;
+  @include b.shadow;
+  background-color: var(--bg-secondary);
+}
+
+.prediction-result__title {
+  text-align: center;
+  font-size: 2.2rem;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.prediction-source {
+  color: var(--text-primary);
+}
+
+.prediction-source__title, .prediction-summary__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.prediction-source__content, .prediction-summary__content {
+  margin-top: 1rem;
+}
+
+.prediction-source__text {
+  @include b.padded;
+  
+  @include b.rounded;
+  border: 1px solid var(--border);
+
+  max-height: 360px;
+  overflow: auto;
+}
+
+.prediction-summary {
+  margin-top: 1rem;
+}

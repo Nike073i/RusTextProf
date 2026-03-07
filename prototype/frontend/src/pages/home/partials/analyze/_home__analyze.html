@@ -1,0 +1,46 @@
+<section class="section container">
+    <div class="text-analyze" id="textAnalyzeSection">
+        <h1 class="text-analyze__header">Анализ текста</h1>
+        <form id="textAnalyzeForm">
+            
+            <div class="text-analyze__actions">
+                <button class="btn" id="selectExampleBtn" type="button" data-variant="primary-outline">
+                    <svg class="icon btn__icon">
+                        <use xlink:href="#file"></use>
+                    </svg>
+                    <span class="btn__text">Пример текста</span>
+                </button>
+                <button class="btn" id="uploadBtn" type="button" data-variant="primary-outline">
+                    <svg class="icon btn__icon">
+                        <use xlink:href="#file-upload"></use>
+                    </svg>
+                    <span class="btn__text">Загрузить файл</span>
+                </button>
+                <input class="hidden" id="fileInput" type="file" accept=".txt">
+            </div> <!-- /.text-analyze__actions -->
+
+            <textarea class="text-analyze__text" id="inputText" placeholder="Введите текст для анализа..." name="text"
+                maxlength="10000" minlength="300" required rows="15"></textarea>
+
+            <div class="text-analyze__counter">
+                <span id="charCounter">0</span>/<span id="charLimit">{{
+                    home__prediction.textConstraints.maxLength }}</span> символов
+            </div>
+
+            <div class="text-analyze__footer">
+                <select class="btn text-analyze__model-selector" id="modelSelector" data-variant="primary-outline"
+                    name="model">
+                    <option value="model1">Модель 1 с длинным именем</option>
+                    <option value="model2" selected>Модель 2</option>
+                    <option value="model3">Модель 3</option>
+                </select>
+                <button class="btn text-analyze__submit" id="submitBtn" data-variant="primary" type="submit">
+                    <span class="btn__text">Прогнозировать</span>
+                </button>
+            </div> <!-- /.text-analyze__footer -->
+
+        </form> <!-- #textAnalyzeForm -->
+
+        {{> _home__examples }}
+    </div> <!-- /.text-analyze -->
+</section> <!-- /.section container -->

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {{> _meta }}
+    {{> _styles }}
+    {{> _page_styles }}
+</head>
+
+<body>
+    {{> _sprites }}
+
+    <div class="page">
+        {{> _header }}
+
+        <div class="section container">
+            <div class="section-wrapper">
+                <h2 class="section__title">Информационный раздел</h2>
+                <div class="section__content">
+                    {{> _docs-menu }}
+                </div>
+            </div>
+        </div>
+
+        <div class="section container">
+            <div class="section-wrapper">
+                <div class="section__content">
+                    {{> body }}
+                </div>
+            </div>
+        </div>
+
+        {{> _footer }}
+    </div> <!-- /.page -->
+
+    {{> _page_modals }}
+    {{> _scripts }}
+    {{> _page_scripts }}
+</body>
+
+</html>

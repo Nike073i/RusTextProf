@@ -1,0 +1,154 @@
+@use "../../shared/styles/core.scss" as b;
+
+.article {
+    background-color: var(--bg-secondary);
+
+    color: var(--text-primary);
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        margin-top: 1.8rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.4rem;
+
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    h1 {
+        font-size: 2.25rem;
+
+        border-bottom: 2px solid var(--border);
+    }
+
+    h2 {
+        font-size: 1.75rem;
+
+        border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+        font-size: 1.35rem;
+    }
+
+    h4 {
+        font-size: 1.1rem;
+    }
+
+    p {
+        margin-top: 1rem;
+    }
+
+    strong {
+        font-weight: 700;
+    }
+
+    em {
+        font-style: italic;
+    }
+
+    pre {
+        @include b.padded;
+        margin: 1.5rem 0;
+
+        max-height: 320px;
+
+        @include b.rounded;
+        background-color: var(--bg-secondary-darken);
+        border: 1px solid var(--border);
+
+        overflow-x: auto;
+        font-size: 0.95rem;
+        line-height: 1.2;
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
+                Consolas, "Liberation Mono", monospace;
+        }
+    }
+
+    ul,
+    ol {
+        margin: 1rem 0 1rem 1.5rem;
+        padding-left: 1rem;
+    }
+
+    li {
+        margin: 0.4rem 0;
+
+        &::before {
+            padding-right: 1rem;
+            
+            color: inherit;
+        }
+    }
+
+    ul {
+        li::before {
+            content: "-";
+        }
+    }
+
+    ol {
+        counter-reset: step-counter;
+        
+        li::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+        }
+    }
+
+    li ul,
+    li ol {
+        margin-top: 0.5rem;
+    }
+
+    table {
+        width: 100%;
+
+        margin: 2rem 0;
+        
+        border-collapse: collapse;
+        
+        font-size: 0.95rem;
+    }
+
+    thead {
+        background-color: var(--bg-primary-lighten);
+    }
+
+    th,
+    td {
+        padding: 0.8rem;
+        
+        border: 1px solid var(--border);
+        
+        color: var(--text-primary);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    th {
+        font-weight: 600;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: var(--bg-secondary-darken);
+    }
+
+    hr {
+        border-top: 1px solid var(--border);
+        margin: 3rem 0;
+    }
+
+    img {
+        display: block;
+        
+        max-width: 100%;
+        height: auto;
+        
+        margin: 2rem auto;
+    }
+}

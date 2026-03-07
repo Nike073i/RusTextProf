@@ -1,0 +1,70 @@
+@use 'core.scss' as b;
+@use "sass:map";
+
+.blockOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+
+    width: 100%;
+    height: 100%;
+    
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(2px);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    @include b.rounded;
+    @include b.shadow;
+    border: 1px solid var(--border);
+    background-color: var(--bg-secondary);
+
+    max-width: 420px;
+    width: 100%;
+
+    z-index: 20;
+
+    @media screen and (max-width: map.get(b.$breakpoints, 'sm')) {
+        max-width: calc(320px - var(--side-offset) * 3);
+    }
+}
+
+.modal__header,
+.modal__body,
+.modal__footer {
+    @include b.padded;
+}
+
+.modal__header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+
+    border-bottom: 2px solid var(--border);
+
+    &--error {
+        color: var(--text-error);
+    }
+}
+
+.modal__body {
+    flex-grow: 1;
+}
+
+.modal__footer {
+    display: flex;
+    justify-content: end;
+    gap: 1rem;
+}
+
+.error-message {
+    color: var(--text-error);
+    text-align: center;
+    white-space: pre-line;
+}

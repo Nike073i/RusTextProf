@@ -1,0 +1,39 @@
+* {
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+*, *::after, *::before {
+    box-sizing: border-box;
+}
+
+ol, ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+
+    &:focus-visible {
+        outline: none;
+    }
+}
+
+textarea {
+  resize: none;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;   
+  appearance: none;        
+  
+  width: 100%;
+}

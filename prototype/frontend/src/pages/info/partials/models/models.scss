@@ -1,0 +1,64 @@
+@use '../../../../shared/styles/core' as b;
+@use 'sass:map';
+
+.models {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+    gap: 1rem;
+}
+
+.model {
+    display: flex;
+    flex-direction: column;
+
+    @include b.rounded;
+    border: 1px solid var(--border);
+
+    color: var(--text-primary);
+}
+
+.model__header,
+.model__body,
+.model__footer {
+    @include b.padded;
+}
+
+.model__header {
+    border-bottom: 1px solid var(--border);
+}
+
+.model__body {
+    flex-grow: 1;
+
+    font-size: 1.1rem;
+
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+}
+
+.model__description {
+    display: -webkit-box;
+
+    overflow: hidden;
+
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+}
+
+.model__name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.model__recommendations-title {
+    margin-top: 1rem;
+
+    font-weight: 700;
+}
+
+.model__recommendation::before {
+    content: "-";
+    padding-right: 1rem;
+}

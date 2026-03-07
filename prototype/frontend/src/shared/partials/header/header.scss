@@ -1,0 +1,14 @@
+@use 'core.scss' as b;
+
+.navbar {
+  margin: var(--vertical-top-offset) var(--side-offset) 0;
+  @include b.padded;
+
+  @include b.rounded;
+  @include b.shadow;
+  background-color: var(--bg-secondary);
+
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}

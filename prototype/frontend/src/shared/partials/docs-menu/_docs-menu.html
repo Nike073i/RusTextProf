@@ -1,0 +1,14 @@
+<nav>
+    <ul class="docs-menu">
+        {{#each models.menu }}
+        <li>
+            <a class="btn" data-variant="primary-outline" href="{{ link }}">
+                <svg class="icon btn__icon">
+                    <use xlink:href="{{ icon }}"></use>
+                </svg>
+                <span class="btn__text">{{ name }}</span>
+            </a>
+        </li>
+        {{/each}}
+    </ul>
+</nav>

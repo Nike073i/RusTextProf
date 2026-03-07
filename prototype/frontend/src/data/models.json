@@ -1,0 +1,53 @@
+{
+    "menu": [
+        {
+            "name": "Автоматическое профилирование",
+            "link": "/info/main/index.html",
+            "icon": "#file-user"
+        },
+        {
+            "name": "Модель А",
+            "link": "/info/model-a/index.html",
+            "icon": "#tree"
+        },
+        {
+            "name": "Модель Б",
+            "link": "/info/model-b/index.html",
+            "icon": "#comment"
+        },
+        {
+            "name": "Модель С",
+            "link": "/info/model-c/index.html",
+            "icon": "#stars"
+        }
+    ],
+    "best": [
+        {
+            "name": "Модель А",
+            "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Hic inventore, natus doloremque consequatur, dicta id pariatur eveniet perferendis suscipit, explicabo harum veritatis nobis. Voluptatem officiis sunt dolor temporibus possimus dolorem! Lorem ipsum dolor sit, amet consectetur adipisicing elit. Hic inventore, natus doloremque consequatur, dicta id pariatur eveniet perferendis suscipit, explicabo harum veritatis nobis. Voluptatem officiis sunt dolor temporibus possimus dolorem!",
+            "recommendations": [
+                "Короткие",
+                "С URL"
+            ],
+            "link": "/info/model-a/index.html"
+        },
+        {
+            "name": "Модель Б",
+            "description": "Описание модели. Особенности и преимущства",
+            "recommendations": [
+                "Короткие",
+                "С URL"
+            ],
+            "link": "/info/model-b/index.html"
+        },
+        {
+            "name": "Модель С",
+            "description": "Описание модели. Особенности и преимущства",
+            "recommendations": [
+                "Короткие",
+                "С URL"
+            ],
+            "link": "/info/model-c/index.html"
+        }
+    ]
+}

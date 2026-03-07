@@ -1,0 +1,15 @@
+<div class="modal examples" id="modalExamples" style="display:none; cursor: default">
+    <h3 class="modal__header">Выбор примера</h3>
+    <div class="modal__body">
+        <select class="btn" id="exampleSelector" data-variant="primary-outline">
+            <option value="none">Не выбран</option>
+            {{#each examples }}
+            <option value="{{ link }}">{{ name }}</option>
+            {{/each }}
+        </select>
+    </div>
+    <div class="modal__footer">
+        <button class="btn" id="confirmExampleSelection" data-variant="primary" type="button">Выбрать</button>
+        <button class="btn" id="cancelExampleSelection" data-variant="secondary-outline" type="button">Отмена</button>
+    </div>
+</div>

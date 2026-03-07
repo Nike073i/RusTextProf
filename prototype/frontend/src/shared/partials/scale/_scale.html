@@ -1,0 +1,26 @@
+<div class="scale" id={{scaleId}}>
+    <div class="scale__labels">
+        <span class="scale__label scale__label--left">
+            {{leftLabel}}
+        </span>
+        <span class="scale__label scale__label--right">
+            {{rightLabel}}
+        </span>
+    </div>
+
+    <div class="scale__bar">
+        <!-- Маркер значения -->
+        <div class="scale__value-marker"></div>
+
+        <!-- Значение -->
+        <span class="scale__value" id="{{valueId}}">
+            {{value}}
+        </span>
+    </div>
+
+    <div class="scale__meta">
+        <p class="scale__threshold">
+            Порог &gt; <span id="{{thresholdId}}">{{threshold}}</span>
+        </p>
+    </div>
+</div> <!-- /.scale -->
