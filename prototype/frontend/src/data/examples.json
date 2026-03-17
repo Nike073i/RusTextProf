@@ -1,18 +1,69 @@
 [
     {
-        "name": "1935. Взрослый мужчина о проблемах в семье",
-        "link": "/examples/old-man/1935.txt"
+        "name": "Ложь и правда. Взрослый мужчина",
+        "link": "/examples/man-old/41.txt"
     },
     {
-        "name": "5561. Взрослая женщина о проблемах в семье",
-        "link": "/examples/old-woman/5561.txt"
+        "name": "Разочарование в клубе. Взрослый мужчина",
+        "link": "/examples/man-old/94.txt"
     },
     {
-        "name": "4110. Молодой мужчина о проблемах в семье",
-        "link": "/examples/young-man/4110.txt"
+        "name": "Мебельная эпопея в Костроме. Взрослый мужчина",
+        "link": "/examples/man-old/121.txt"
     },
     {
-        "name": "19. Молодая женщина о проблемах в семье",
-        "link": "/examples/young-woman/19.txt"
+        "name": "Порочный круг потребления. Взрослый мужчина",
+        "link": "/examples/man-old/536.txt"
+    },
+
+    {
+        "name": "Профессиональная реализация и семейные истории. Молодой мужчина",
+        "link": "/examples/man-young/3540.txt"
+    },
+    {
+        "name": "Жуть на выставке. Молодой мужчина",
+        "link": "/examples/man-young/3706.txt"
+    },
+    {
+        "name": "Пьянство за рулём и двойные стандарты. Молодой мужчина",
+        "link": "/examples/man-young/3798.txt"
+    },
+    {
+        "name": "Ландыши и медведь. Молодой мужчина",
+        "link": "/examples/man-young/3831.txt"
+    },
+    {
+        "name": "Мультифон: тарифный тупик. Молодой мужчина",
+        "link": "/examples/man-young/3957.txt"
+    },
+
+    {
+        "name": "Кошку пришлось отдать. Взрослая женщина",
+        "link": "/examples/woman-old/9289.txt"
+    },
+    {
+        "name": "Хрупкий баланс. Взрослая женщина",
+        "link": "/examples/woman-old/9346.txt"
+    },
+    {
+        "name": "Катя становится флоатером. Взрослая женщина",
+        "link": "/examples/woman-old/9624.txt"
+    },
+    {
+        "name": "Льняная подушка с историей. Взрослая женщина",
+        "link": "/examples/woman-old/10297.txt"
+    },
+
+    {
+        "name": "Индивидуальная палитра David Zyla. Молодая женщина",
+        "link": "/examples/woman-young/13716.txt"
+    },
+    {
+        "name": "16 воспоминаний о 2016. Молодая женщина",
+        "link": "/examples/woman-young/13733.txt"
+    },
+    {
+        "name": "Акварель и прозрение. Молодая женщина",
+        "link": "/examples/woman-young/13895.txt"
     }
 ]

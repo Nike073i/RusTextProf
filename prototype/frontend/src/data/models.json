@@ -6,48 +6,52 @@
             "icon": "#file-user"
         },
         {
-            "name": "Модель А",
-            "link": "/info/model-a/index.html",
-            "icon": "#tree"
+            "name": "Универсальный оптимум",
+            "link": "/info/universal-optimum/index.html",
+            "icon": "#stars"
         },
         {
-            "name": "Модель Б",
-            "link": "/info/model-b/index.html",
+            "name": "Справедливая модель",
+            "link": "/info/fair-model/index.html",
             "icon": "#comment"
         },
         {
-            "name": "Модель С",
-            "link": "/info/model-c/index.html",
-            "icon": "#stars"
+            "name": "Корректор смещения",
+            "link": "/info/offset-corrector/index.html",
+            "icon": "#tree"
         }
     ],
     "best": [
         {
-            "name": "Модель А",
-            "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Hic inventore, natus doloremque consequatur, dicta id pariatur eveniet perferendis suscipit, explicabo harum veritatis nobis. Voluptatem officiis sunt dolor temporibus possimus dolorem! Lorem ipsum dolor sit, amet consectetur adipisicing elit. Hic inventore, natus doloremque consequatur, dicta id pariatur eveniet perferendis suscipit, explicabo harum veritatis nobis. Voluptatem officiis sunt dolor temporibus possimus dolorem!",
+            "name": "Универсальный оптимум",
+            "description": "Базовая модель для большинства задач демографического профилирования. Обеспечивает наилучшую общую точность (45,0%) на разнородных текстах, особенно эффективна на коротких сообщениях, в мужской аудитории и среди молодых авторов. Рекомендуется в качестве отправной точки при отсутствии специальных требований к балансу классов.",
             "recommendations": [
-                "Короткие",
-                "С URL"
+                "Разнородные тексты",
+                "Универсальное решение",
+                "ЦА- молодые мужчины"
             ],
-            "link": "/info/model-a/index.html"
+            "link": "/info/universal-optimum/index.html"
         },
         {
-            "name": "Модель Б",
-            "description": "Описание модели. Особенности и преимущства",
+            "name": "Справедливая модель",
+            "description": "SVM с полиномиальным ядром. Обеспечивает наиболее равномерное распознавание всех групп. Отличается высокой стабильностью предсказаний (минимальный разброс точности на разных выборках) и лучшими результатами на женской аудитории, взрослых авторах и коротких текстах.",
             "recommendations": [
-                "Короткие",
-                "С URL"
+                "Равномерная классификация",
+                "Высокая стабильность",
+                "Предсказуемость",
+                "Короткие тексты"
             ],
-            "link": "/info/model-b/index.html"
+            "link": "/info/fair-model/index.html"
         },
         {
-            "name": "Модель С",
-            "description": "Описание модели. Особенности и преимущства",
+            "name": "Корректор смещения",
+            "description": "Каскадный классификатор. Позволяет скорректировать смещение в сторону доминирующих групп, обеспечивает высокую стабильность предсказаний. Показывает лучшие результаты на коротких текстах и среди взрослых авторов, существенно улучшая распознавание взрослых мужчин по сравнению с плоскими моделями.",
             "recommendations": [
-                "Короткие",
-                "С URL"
+                "ЦА - мужчины",
+                "Высокая стабильность",
+                "Короткие тексты"
             ],
-            "link": "/info/model-c/index.html"
+            "link": "/info/offset-corrector/index.html"
         }
     ]
 }
