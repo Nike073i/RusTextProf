@@ -1,0 +1,14 @@
+﻿Модель,Точность
+cascade_svc_poly_svc_rbf,0.430
+cascade_svc_poly_gbm,0.426
+flat_gbm,0.421
+cascade_svc_poly_lr,0.419
+flat_lr,0.417
+flat_rf,0.396
+flat_svc_rbf,0.396
+cascade_nb_gbm,0.390
+flat_mlp,0.377
+flat_svc_poly,0.371
+flat_knn,0.369
+flat_nb,0.365
+flat_svc_linear,0.362

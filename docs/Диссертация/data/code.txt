@@ -1,0 +1,882 @@
+###### clean.py #####
+_B='content'
+_A=True
+from pathlib import Path
+from text_utils.cleaners import clean_html
+from text_utils.converters import to_single_line
+from text_utils.checkers import has_unbalanced_quotes
+import pandas as pd
+from urlextract import URLExtract
+DATA_PATH=Path('../processed/rus_idiolect.parquet')
+OUTPUT_DIR=Path('../processed')
+OUTPUT_FILE=Path('rus_idiolect_clean.parquet')
+OUTPUT_PATH=OUTPUT_DIR/OUTPUT_FILE
+DROP_COLUMNS=['Текст: Интенция на обман','Автор: Рукость','Автор: Родной язык','Текст: Тип текста','Корпус: Название','Текст: Модус','Текст: Форма речи','Текст: Тип коммуникативной ситуации']
+RENAME_MAP={'Текст: Возраст автора':'age','Текст: Текст':_B,'Автор: Номер участника':'user_id','Автор: Пол':'gender'}
+SOURCE_URL_PATTERNS={'livejournal','vk.com/wall','vkontakte.ru/note','zen.yandex.ru/media/'}
+def extract_source_url(text):
+	F=' .,;:!?)]}…';B=None;A=text;G=URLExtract();C=G.find_urls(A,get_indices=_A)
+	if not C:return A,B
+	D,(H,I)=C[-1]
+	if not any(A in D for A in SOURCE_URL_PATTERNS):return A,B
+	E=A[I:].strip()
+	if E and not all(A in F for A in E):return A,B
+	J=A[:H].rstrip(F);return J,D
+def main():
+	B='text'
+	if not DATA_PATH.exists():raise FileNotFoundError(f"Data file not found: {DATA_PATH}")
+	A=pd.read_parquet(DATA_PATH);A.drop(columns=DROP_COLUMNS,inplace=_A);A.rename(columns=RENAME_MAP,inplace=_A);A.dropna(inplace=_A);A[[B,'source_url']]=A[_B].apply(extract_source_url).tolist();A.drop(columns=[_B],inplace=_A);A[B]=A[B].apply(clean_html);A[B]=A[B].apply(to_single_line);C=A[B].apply(has_unbalanced_quotes);A=A.loc[~C].copy();A=A.loc[A[B].str.strip().astype(bool)].copy();OUTPUT_DIR.mkdir(parents=_A,exist_ok=_A);A.to_parquet(OUTPUT_PATH,index=False)
+if __name__=='__main__':main()
+
+###### merge_chunks.py #####
+_A=True
+from pathlib import Path
+import pandas as pd
+OUTPUT_DIR=Path('../processed')
+OUTPUT_FILE='rus_idiolect.parquet'
+OUTPUT_PATH=OUTPUT_DIR/OUTPUT_FILE
+CHUNKS_DIR=Path('../raw')
+CHUNK_PREFIX='chunk_'
+if not CHUNKS_DIR.exists():raise FileNotFoundError(f"Директория {CHUNKS_DIR} не найдена")
+chunks=sorted([A for A in CHUNKS_DIR.iterdir()if A.suffix=='.xlsx'and A.name.startswith(CHUNK_PREFIX)])
+if not chunks:raise FileNotFoundError(f"Файлы с префиксом '{CHUNK_PREFIX}' не найдены")
+dataframes=[]
+for chunk_file in chunks:
+	try:df_chunk=pd.read_excel(chunk_file);dataframes.append(df_chunk)
+	except Exception as e:print(f"Ошибка при чтении {chunk_file}: {e}");continue
+if not dataframes:raise ValueError('Не удалось загрузить ни один файл')
+df=pd.concat(dataframes,ignore_index=_A)
+df.drop_duplicates(inplace=_A)
+OUTPUT_DIR.mkdir(parents=_A,exist_ok=_A)
+df.to_parquet(OUTPUT_PATH,index=False)
+
+###### app.py #####
+from fastapi import FastAPI,APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+from modules.profiling.api.v1.routes import router as profiling_v1
+from core.error_handlers import setup_error_handlers
+rootRouter=APIRouter(prefix='/api')
+rootRouter.include_router(profiling_v1)
+app=FastAPI()
+setup_error_handlers(app)
+app.add_middleware(CORSMiddleware,allow_origins=['*'],allow_credentials=True,allow_methods=['*'],allow_headers=['*'])
+app.include_router(rootRouter)
+
+###### config.py #####
+from typing import Dict
+import yaml
+with open('config.yaml')as f:cfg=yaml.safe_load(f)
+def resolve_config():return cfg
+class Model:
+	def __init__(A,id,name,path):A.id=id;A.name=name;A.path=path
+class ProfilingSection:
+	models:Dict[str,Model]
+	def __init__(A,models):A.models=models
+	@staticmethod
+	def from_yaml(config):A=config.get('profiling',{});B={A['id']:Model(**A)for A in A.get('models',[])};return ProfilingSection(models=B)
+	
+###### error_handlers.py #####
+from fastapi import FastAPI,Request,status
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from.exceptions import AppError
+from.schemas import ErrorResponse
+import logging
+logger=logging.getLogger(__name__)
+def setup_error_handlers(app):
+	D='details';C='message';B='code';A=app
+	@A.exception_handler(AppError)
+	async def E(request,exc):A=exc;logger.warning(f"App error ({A.code}): {A.message}");E=ErrorResponse(error={B:A.code,C:A.message,D:A.details},path=request.url.path);return JSONResponse(status_code=A.status_code,content=E.model_dump())
+	@A.exception_handler(RequestValidationError)
+	async def F(request,exc):
+		logger.info(f"Validation error: {exc.errors()}");E=[]
+		for A in exc.errors():E.append({'field':'.'.join(str(A)for A in A['loc']),C:A['msg'],B:A['type']})
+		F=ErrorResponse(error={B:'request_validation_error',C:'Ошибка валидации запроса',D:{'errors':E}},path=request.url.path);return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,content=F.model_dump())
+	@A.exception_handler(Exception)
+	async def G(request,exc):logger.error(f"Unexpected error: {str(exc)}",exc_info=True);E=ErrorResponse(error={B:'internal_server_error',C:'Внутренняя ошибка сервера',D:{'debug':str(exc)if A.debug else None}},path=request.url.path);return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,content=E.model_dump())
+	
+###### exceptions.py #####
+_A=None
+from fastapi import status
+class AppError(Exception):
+	def __init__(A,message,code,status_code,errors=_A):B=message;super().__init__(B);A.message=B;A.code=code;A.status_code=status_code;A.details={'errors':errors}
+def app_error(message,errors=_A):return AppError(message=message,code='internal_error',status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,errors=errors)
+def business_error(message,errors=_A):return AppError(message=message,code='business_error',status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,errors=errors)
+def validation_error(message,errors=_A):return AppError(message=message,code='validation_error',status_code=status.HTTP_412_PRECONDITION_FAILED,errors=errors)
+def not_found_error(message,errors=_A):return AppError(message=message,code='not_found',status_code=status.HTTP_404_NOT_FOUND,errors=errors)
+
+###### schemas.py #####
+from pydantic import BaseModel,Field,field_serializer
+from typing import Optional,Dict,Any
+from datetime import datetime
+class ErrorResponse(BaseModel):
+	success:bool=False;error:Dict[str,Any]=Field(default_factory=dict,description='Детали ошибки');timestamp:datetime=Field(default_factory=datetime.now);path:Optional[str]=None
+	@field_serializer('timestamp')
+	def serialize_datetime(self,dt):return dt.strftime('%d.%m.%Y %H:%M')
+	
+###### di.py #####
+from fastapi import Depends
+from modules.profiling.use_cases.predict_profile import PredictProfileUseCase
+from modules.profiling.infrastructure.config.profiling_models import get_model_info
+from modules.profiling.infrastructure.memory_cache.text import async_get_metrics
+from modules.profiling.infrastructure.ai_models.profiling import get_profile
+from core.config import resolve_config
+from functools import partial
+def resolve_predict_profile_use_case(config=Depends(resolve_config)):A=partial(get_model_info,config);B=get_profile;return PredictProfileUseCase(async_get_metrics,B,A)
+
+###### extract_text_metrics.py #####
+class ExtractTextMetricsUseCase:
+	def __init__(A,extract_metrics):A.extract_metrics=extract_metrics
+	async def execute(A,text):B=await A.extract_metrics(text);return B
+	
+###### list_available_models.py #####
+from fastapi import APIRouter,Depends
+from pydantic import BaseModel
+from typing import List
+from modules.profiling.use_cases.get_available_models import GetAvailableModelsUseCase
+from.di import resolve_get_available_models_use_case
+class Request(BaseModel):0
+class ProfilingModel(BaseModel):id:str;name:str
+class Response(BaseModel):available_models:List[ProfilingModel]
+async def get_available_models(data=Depends(),use_case=Depends(resolve_get_available_models_use_case)):A=await use_case.execute();return{'available_models':A}
+def register(router):router.get('/available-models',response_model=Response)(get_available_models)
+
+###### predict.py #####
+from fastapi import APIRouter,Depends
+from pydantic import BaseModel,Field,field_validator
+from typing import Dict,Optional
+from core.schemas import ErrorResponse
+from modules.profiling.use_cases.predict_profile import PredictProfileUseCase
+from.di import resolve_predict_profile_use_case
+class Request(BaseModel):
+	text:str=Field(...,min_length=300,max_length=10000,description='Текст');model_id:Optional[str]=Field(None,description='Идентификатор модели прогнозирования')
+	@field_validator('text')
+	def validate_quotes(value):
+		A=value;B=A.count('"');C=A.count("'")
+		if C%2!=0 or B%2!=0:raise ValueError('Количество кавычек должно быть четным')
+		return A
+class Prediction(BaseModel):proba:float;threshold:float;label:str
+class Response(BaseModel):gender_prediction:Prediction;age_prediction:Prediction;metrics:Dict[str,Dict[str,float]];model_id:str
+async def predict(data,use_case=Depends(resolve_predict_profile_use_case)):A=await use_case.execute(data.text,data.model_id);return{'metrics':A.metrics,'gender_prediction':A.gender,'age_prediction':A.age,'model_id':A.model_id}
+def register(router):B='description';A='model';router.post('/predict',response_model=Response,responses={404:{A:ErrorResponse,B:'Модель не найдена'},412:{A:ErrorResponse,B:'Извлеченные метрики невалидны для прогнозирования'},500:{A:ErrorResponse,B:'Внутренняя ошибка приложения'}})(predict)
+
+###### routes.py #####
+from fastapi import APIRouter
+from.list_available_models.list_available_models import register as reg_list_of_available_models
+from.extract_text_metrics.extract_text_metrics import register as reg_extract_text_metrics
+from.predict.predict import register as reg_predict_profile
+router=APIRouter(prefix='/v1/profiling')
+reg_list_of_available_models(router)
+reg_extract_text_metrics(router)
+reg_predict_profile(router)
+
+###### text.py #####
+from cachetools import cached,TTLCache
+from hashlib import sha256
+from...domain.text import extract_metrics
+text_cache=TTLCache(maxsize=1000,ttl=600)
+@cached(text_cache,key=lambda text:sha256(text.encode()).hexdigest())
+def cached_get_metrics(text):return extract_metrics(text)
+async def async_get_metrics(text):return cached_get_metrics(text)
+
+###### profiling.py #####
+from predictors.serialization import load_model
+from pathlib import Path
+from cachetools import cached
+from core.exceptions import app_error
+@cached(cache={})
+def load_predictor(file_name):
+	B=file_name;A=Path(B)
+	if not A.exists():raise app_error(message='Модель не найдена',errors=[f"Модель по пути {B} не найдена"])
+	if A.suffix!='.pkl':raise app_error(message='Недопустимый формат модели',errors=[f"Модель имеет недопустимый формат - {A.suffix}"])
+	C=load_model(A);return C
+async def get_profile(metrics,model_info):A=load_predictor(model_info.path);B=A.predict([metrics]);return B[0]
+
+###### profiling_models.py #####
+from core.config import ProfilingSection
+from core.exceptions import app_error,not_found_error
+async def get_models_info(config):A=ProfilingSection.from_yaml(config);return A.models.values()
+async def get_model_info(config,model_id=None):
+	A=model_id;C=ProfilingSection.from_yaml(config);B=C.models
+	if not B:raise app_error(message='Отсутствуют модели для прогнозирования')
+	if A and A not in B:raise not_found_error(message='Указана несуществующая модель',errors=[f"Модель {A} не доступна для прогнозирования"])
+	return B[A]if A else list(B.values())[0]
+	
+###### get_available_models.py #####
+class GetAvailableModelsUseCase:
+	def __init__(A,get_models_info):A._get_models_info=get_models_info
+	async def execute(A):B=await A._get_models_info();return list(map(lambda model:{'id':model.id,'name':model.name},B))
+	
+###### predict_profile.py #####
+from..domain.text import validate_metrics
+from core.exceptions import validation_error
+class PredictionResult:
+	def __init__(A,gender,age,metrics,model_id):A.gender=gender;A.age=age;A.metrics=metrics;A.model_id=model_id
+class PredictProfileUseCase:
+	def __init__(A,extract_metrics,get_profile,get_model_info):A.extract_metrics=extract_metrics;A.get_profile=get_profile;A.get_model_info=get_model_info
+	async def execute(A,text,model_id=None):
+		C=await A.get_model_info(model_id);B=await A.extract_metrics(text);D=validate_metrics(B)
+		if D:raise validation_error(message='Извлеченные метрики невалидны для прогнозирования',errors=D)
+		E=await A.get_profile(B,C);return PredictionResult(metrics=B,gender=E[0],age=E[1],model_id=C.id)
+		
+###### classifier.py #####
+from abc import ABC,abstractmethod
+import pandas as pd,numpy as np
+class Classifier(ABC):
+	def __init__(A,pipeline):A.pipeline=pipeline
+	@abstractmethod
+	def predict(self,features):raise NotImplementedError
+	
+###### multi.py #####
+from.classifier import Classifier
+import numpy as np
+class CascadeClassifier(Classifier):
+	def __init__(A,pipeline):super().__init__(pipeline)
+	def predict(A,features):B=A.pipeline.predict_proba(features);return B[:,1::2]
+class FlatClassifier(Classifier):
+	def __init__(A,pipeline):super().__init__(pipeline)
+	def predict(G,features):
+		A=G.pipeline.predict_proba(features);C=A.shape[1];B=int(np.log2(C));D=np.zeros((A.shape[0],B))
+		for E in range(B):
+			for F in range(C):
+				if F>>B-1-E&1:D[:,E]+=A[:,F]
+		return D
+		
+###### predictor.py #####
+from dataclasses import dataclass
+from.classifier import Classifier
+@dataclass
+class ClassPrediction:proba:float;threshold:float;label:str
+class Predictor:
+	def __init__(A,classifier,thresholds,labels):A.classifier=classifier;A.thresholds=thresholds;A.labels=labels
+	def predict(A,features):
+		H=A.classifier.predict(features);B=[]
+		for C in H:
+			D=[]
+			for(E,(F,G))in enumerate(zip(A.thresholds,A.labels)):I=ClassPrediction(proba=C[E].item(),threshold=F,label=G[0]if C[E]<F else G[1]);D.append(I)
+			B.append(D)
+		return B
+		
+###### feature_selection.py #####
+from sklearn.base import BaseEstimator,TransformerMixin
+class ModelFeatureSelector(BaseEstimator,TransformerMixin):
+	def __init__(A,keys):A.keys=keys
+	def fit(A,X,y=None):return A
+	def transform(A,X):return X[A.keys]
+	
+###### metrics.py #####
+import numpy as np
+epsilon=1e-08
+def triangular_weights(distances,max_distance=None):
+	B=distances;A=max_distance
+	if A is None:A=np.max(B)
+	if A<epsilon:return np.ones_like(B)
+	return np.maximum(1-B/A,0)
+def gaussian_weights(distances,sigma=1.):return np.exp(-distances**2/(2*sigma**2))
+def quadratic_weights(distances):return 1/(distances**2+epsilon)
+
+###### pipeline.py #####
+import numpy as np
+from sklearn.base import BaseEstimator,ClassifierMixin
+class CascadedClassifier(BaseEstimator,ClassifierMixin):
+	def __init__(A,main_clf,secondary_clf,threshold=.5):A.main_clf=main_clf;A.secondary_clf=secondary_clf;A.threshold=threshold
+	def fit(A,X,y):raise NotImplementedError('Модель уже обучена, fit не требуется.')
+	def predict(B,X):
+		C=B.main_clf.predict(X);D=np.empty(X.shape[0],dtype=int)
+		for(E,F)in enumerate(B.secondary_clf):
+			A=C==E
+			if np.any(A):D[A]=F.predict(X[A])
+		return np.column_stack([C,D])
+	def predict_proba(A,X):
+		C=A.main_clf.predict_proba(X);E=(C[:,1]>=A.threshold).astype(int);D=np.zeros((X.shape[0],2))
+		for(F,G)in enumerate(A.secondary_clf):
+			B=E==F
+			if np.any(B):D[B]=G.predict_proba(X[B])
+		return np.hstack([C,D])
+		
+###### serialization.py #####
+import json,pickle
+def write_model(path,model):
+	with open(path.with_suffix('.pkl'),'wb')as A:pickle.dump(model,A)
+def write_dict(path,data):
+	with open(path.with_suffix('.json'),'w')as A:json.dump(data,A)
+def save_model(base_dir,model,name,model_params=None,scores=None):
+	D=scores;C=model_params;B=base_dir
+	if not B.exists():return FileNotFoundError('Папка с моделями не найдена')
+	A=B/name;A.mkdir();write_model(A/'model',model)
+	if C:write_dict(A/'params',C)
+	if D:write_dict(A/'scores',D)
+def load_model(path):
+	with open(path,'rb')as A:return pickle.load(A)
+	
+###### transformers.py #####
+_A=None
+from typing import List,Optional
+import pandas as pd
+from functools import reduce
+class CompositionTransformer:
+	def __init__(A,transformers):A.transformers=transformers
+	def transform(A,X):return reduce(lambda state,transformer:transformer.transform(state),A.transformers,X)
+class ApplyListTransformer:
+	def __init__(A,fn):A.fn=fn
+	def transform(B,X):
+		A=[]
+		for C in X:A.append(B.fn(C))
+		return A
+class DataFrameTransformer:
+	def __init__(A,columns):A.columns=columns
+	def transform(A,X):return pd.DataFrame(X,columns=A.columns)
+class DefaultValueTransformer:
+	def __init__(A,default_val):A.default_val=default_val
+	def transform(A,X):return X.fillna(A.default_val)
+class RenameColumnTransformer:
+	def __init__(A,mapper):A.mapper=mapper
+	def transform(A,X):return X.rename(columns=A.mapper)
+class BinarizationRule:
+	def __init__(A,current_name,new_name,between=_A,gt_then=_A,lt_then=_A):A.current_name=current_name;A.new_name=new_name;A.between=between;A.gt_then=gt_then;A.lt_then=lt_then
+	def apply(A,series):
+		B=series
+		if A.between is not _A:return B.between(A.between[0],A.between[1])
+		elif A.gt_then is not _A:return B>A.gt_then
+		elif A.lt_then is not _A:return B<A.lt_then
+		return B
+class BinarizationTransformer:
+	def __init__(A,rules):A.rules=rules
+	def transform(B,X):
+		for A in B.rules:X[A.new_name]=A.apply(X[A.current_name]).astype(int)
+		return X
+class DropColumnTransformer:
+	def __init__(A,columns):A.columns=columns
+	def transform(A,X):return X.drop(columns=A.columns)
+class ModelWrapper:
+	def __init__(A,transformer,model):A._transformer=transformer;A._model=model
+	def predict(A,X):B=A._transformer.transform(X);return A._model.predict(B)
+	def predict_proba(A,X):B=A._transformer.transform(X);return A._model.predict_proba(B)
+	
+###### context.py #####
+from typing import Dict,List
+from collections import Counter
+from.span import Span
+class DocumentStat:
+	symbols_length:int
+	def __init__(A,symbols_length):A.symbols_length=symbols_length
+class EntitiesStat:
+	spans:Dict[str,List[Span]];entities_width:int
+	def __init__(A,spans,entities_width):A.spans=spans;A.entities_width=entities_width
+class PosStat:
+	seqs:List[List[Span]];sentences_count:int
+	def __init__(A,seqs):A.seqs=seqs;A.sentences_count=len(seqs)
+	def get_series(C,seq_start=None,seq_end=None):
+		B=seq_end;A=seq_start
+		for D in C.seqs:
+			if A:yield A
+			yield from D
+			if B:yield B
+class DocumentContext:
+	lexicon:Counter;document_stat:DocumentStat;entities:EntitiesStat;pos:PosStat
+	def __init__(A,lexicon,document_stat,entities,pos):A.lexicon=lexicon;A.document_stat=document_stat;A.entities=entities;A.pos=pos
+	
+###### metric.py #####
+from typing import Callable,Dict,Union,Optional,Protocol
+from.context import DocumentContext
+class Metric(Protocol):
+	name:Optional[str];group:Optional[str];extract_func:Callable[[DocumentContext],Union[Dict,float]]
+	def __init__(A,name,group,extract_func):A.name=name;A.group=group;A.extract_func=extract_func
+	
+###### span.py #####
+from dataclasses import dataclass
+from intervaltree import IntervalTree
+from typing import List
+@dataclass
+class Span:start:int;end:int;data:object
+class SpanTree:
+	def __init__(A):A._tree=IntervalTree()
+	def try_add(A,start,end,data):
+		B=start;C=A.overlap(B,end)
+		if C:return False
+		A._tree.addi(B,end,data);return True
+	def overlap(A,start,end):return A._tree.overlap(start,end)
+	def get_spans(A):return[Span(A,B,C)for(A,B,C)in A._tree]
+	
+###### tagger.py #####
+from typing import Callable,List
+from.span import Span
+class Tagger:
+	name:str;tag_func:Callable[[str],List['Span']]
+	def __init__(A,name,tag_func):A.name=name;A.tag_func=tag_func
+	
+###### doc.py #####
+from collections import Counter,defaultdict
+from typing import List
+from..external.natasha import create_doc
+from..entities.EntityTagger import EntityTagger
+from..core.tagger import Tagger
+from..core.metric import Metric
+from..core.context import DocumentContext,DocumentStat,EntitiesStat,PosStat
+from..pos.pos_tagger import tag as pos_tag
+from.MetricExtractor import MetricExtractor
+def extract_metrics(text,taggers,metrics):
+	C=taggers;A=text;B=EntityTagger(C);B.tag(A);F=B.get_entities();D=defaultdict(list)
+	for E in F:D[E.data['entity']].append(E)
+	G=len(set([A.name for A in C]));H=EntitiesStat(D,G);I=create_doc(A);J,K=pos_tag(I,B);L=PosStat(J);M=Counter(K);N=DocumentStat(len(A));O=DocumentContext(M,N,H,L);P=MetricExtractor(metrics);Q=P.extract(O);return Q
+	
+###### MetricExtractor.py #####
+from..core.context import DocumentContext
+from..core.metric import Metric
+from collections import defaultdict
+DEFAULT_GROUP='common'
+class MetricExtractor:
+	def __init__(A,metrics):A._metrics=metrics
+	def extract(E,context):
+		C=defaultdict(dict)
+		for A in E._metrics:
+			B=A.extract_func(context);F=A.group or DEFAULT_GROUP;D=C[F]
+			if isinstance(B,dict):D.update(B)
+			else:D[A.name]=B
+		return C
+		
+###### long_sentences_proportion.py #####
+from text_metrics.core.context import DocumentContext
+LONG_SENTENCE_LENGTH=8
+METRIC_NAME='long_sentences_proportion'
+METRIC_GROUP='text'
+def extract(context):
+	A=context;B=A.pos.sentences_count
+	if B==0:return 0
+	C=sum(1 for A in A.pos.seqs if len(A)>=LONG_SENTENCE_LENGTH);return C/B
+	
+###### sentences_count.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='sentences_count'
+METRIC_GROUP='text'
+def extract(context):return context.pos.sentences_count
+
+###### symbols_length.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='symbols_length'
+METRIC_GROUP='text'
+def extract(context):A=context;return A.document_stat.symbols_length/A.pos.sentences_count
+
+###### regex_tag.py #####
+import re
+from...core.span import Span
+def regex_tagger_factory(pattern):
+	A=re.compile(pattern,re.IGNORECASE)
+	def B(text):B=A.finditer(text);return[Span(A.start(),A.end(),{'match':A.group(0)})for A in B]
+	return B
+	
+###### EntityTagger.py #####
+from typing import List
+from..core.span import SpanTree,Span
+from text_metrics.core.tagger import Tagger
+class EntityTagger:
+	def __init__(A,taggers):A._taggers=taggers;A._tree=None
+	def is_contains(A,start,end):
+		if not A._tree:return False
+		return A._tree.overlap(start,end)
+	def get_entities(A):
+		if not A._tree:return[]
+		return[Span(A.start,A.end,A.data)for A in A._tree.get_spans()]
+	def tag(A,text):
+		A._tree=SpanTree()
+		for C in A._taggers:
+			D=C.name;E=C.tag_func(text)
+			for B in E:F=A._tree.try_add(B.start,B.end,{'entity':D}|B.data)
+			
+###### breadth.py #####
+from text_metrics.core.context import DocumentContext
+from text_metrics.punct.consts import set_of_puncts
+METRIC_NAME='breadth_of_use_puncts'
+METRIC_GROUP='punct'
+def extract(context):A=context.pos.get_series();B={A.data['text']for A in A if A.data['pos']=='PUNCT'};C=B.intersection(set_of_puncts);D=len(C)/len(set_of_puncts);return D
+
+###### mean_usage.py #####
+from collections import Counter
+from text_metrics.core.context import DocumentContext
+from text_metrics.punct.consts import set_of_puncts
+METRIC_GROUP='punct'
+def extract(context):A=context;C=A.pos.sentences_count;D=A.pos.get_series();B=Counter([A.data['text']for A in D if A.data['pos']=='PUNCT']);E=B.keys()&set_of_puncts;return{f"mean_usage_{A}":B[A]/C for A in E}
+
+###### TaggerLoader.py #####
+_B='__init__'
+_A=None
+import importlib
+from pathlib import Path
+from text_metrics.core.tagger import Tagger
+from typing import List,Optional,Set
+TAGGERS_DIR_NAME='taggers'
+TAG_NAME_ATTR='TAG_NAME'
+TAG_FN_ATTR='tag'
+class TaggerLoader:
+	def __init__(A,base_path=_A):A.base_path=base_path or Path(__file__).parent;A.taggers_dir=(A.base_path/TAGGERS_DIR_NAME).resolve()
+	def __load_from_file(G,tagger_path):
+		A=tagger_path
+		if not A.exists():return
+		D=A.stem
+		if D==_B or not A.suffix=='.py':return
+		B=importlib.util.spec_from_file_location(D,A)
+		if B is _A or B.loader is _A:return
+		C=importlib.util.module_from_spec(B);B.loader.exec_module(C);E=getattr(C,TAG_NAME_ATTR,_A);F=getattr(C,TAG_FN_ATTR,_A)
+		if E is not _A and F is not _A:return Tagger(name=E,tag_func=F)
+	def load_by_tagger_names(A,names):
+		B=[]
+		for D in names:
+			E=A.taggers_dir/f"{D}.py";C=A.__load_from_file(E)
+			if C:B.append(C)
+		return B
+	def get_tagger_names(B):
+		A=set()
+		if not B.taggers_dir.exists():return A
+		for C in B.taggers_dir.glob('*.py'):
+			if C.stem!=_B:A.add(C.stem)
+		return A
+		
+###### address_natasha.py #####
+from text_metrics.core.span import Span
+from text_metrics.external.natasha import addr_extractor
+TAG_NAME='ADDRESS'
+def tag(text):A=addr_extractor(text);return[Span(A.start,A.stop,{'part':A.fact})for A in A]
+
+###### address_re.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='ADDRESS'
+pattern='\\b(ул\\.|улица|просп\\.|проспект|б[- ]?р\\.|бульвар|пл\\.|площадь|пер\\.|переулок|проезд)\\s*([а-яА-Я-]+(\\s*[а-яА-Я-]+)*)(\\s*[,\\.]?\\s*(д\\.?|дом)?\\s*\\d+\\s*[а-яА-Я]?)?(\\s*[,\\.]?\\s*(кв\\.|квартира)?\\s*\\d+\\s*[а-яА-Я]?)?'
+tag=regex_tagger_factory(pattern)
+
+###### date_natasha.py #####
+from text_metrics.core.span import Span
+from text_metrics.external.natasha import dates_extractor
+TAG_NAME='DATE'
+def tag(text):A=dates_extractor(text);return[Span(A.start,A.stop,{'part':A.fact})for A in A]
+
+###### date_re.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='DATE'
+pattern='\\b((0?[1-9]|[12][0-9]|3[01])[./-](0?[1-9]|1[0-2])[./-](19|20)?\\d{2}|(19|20)\\d{2}[./-](0?[1-9]|1[0-2])[./-](0?[1-9]|[12][0-9]|3[01])|(0?[1-9]|1[0-2])[./-](0?[1-9]|[12][0-9]|3[01])[./-](19|20)?\\d{2})\\b'
+tag=regex_tagger_factory(pattern)
+
+###### email.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='EMAIL'
+tag=regex_tagger_factory('\\b[\\w\\.-]+@[\\w\\.-]+\\.\\w+\\b')
+
+###### enum.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='ENUM'
+tag=regex_tagger_factory('(?<!\\S)(\\d+|[a-zA-Z]+)[.)](?!\\d|\\w)(?=\\s|$)')
+
+###### foreign.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='FOREIGN'
+tag=regex_tagger_factory('\\b[a-z]+(-[a-zA-Z]+)*\\b')
+
+###### hashtag.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='TAG'
+tag=regex_tagger_factory('(?<!\\w)#[a-zA-Zа-яА-ЯёЁ\\d_]+(?=\\W|$)')
+
+###### measurement_natasha.py #####
+from text_metrics.core.span import Span
+from text_metrics.external.natasha import money_extractor
+TAG_NAME='MEAS'
+def tag(text):A=money_extractor(text);return[Span(A.start,A.stop,{'part':A.fact})for A in A]
+
+###### measurement_re.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='MEAS'
+tag=regex_tagger_factory('(\\d+[\\d.,]*)\\s*(кг|кило|шт|штук|ед|г|м|см|км|л|сек|мин|ч|лет|год)\\b')
+
+###### number.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='NUMBER'
+tag=regex_tagger_factory('\\b[\\+-]?\\d+([.,]\\d+)?\\b')
+
+###### phone.py #####
+from phonenumbers import PhoneNumberMatcher
+from text_metrics.core.span import Span
+TAG_NAME='PHONE'
+def tag(text):A=PhoneNumberMatcher(text,region='ru');return[Span(A.start,A.end,{'phone':A.raw_string})for A in A]
+
+###### pointer.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='POINTER'
+tag=regex_tagger_factory('(пункт|п\\.|раздел|гл|глава|статья|ст\\.|№)\\s+\\d+[\\d.-]*')
+
+###### punct_emotion.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='PUNCEM'
+tag=regex_tagger_factory('[.!?]{2,}')
+
+###### quote.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='QUOTE'
+tag=regex_tagger_factory('«[^»]*»|“[^”]*”|"[^"]*"')
+
+###### smile.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='SMILE'
+pattern='([:=;][-^~*]?[)dp(]+|[)dp(]+[-^~*]?[:=;]|[0o]_[0o]|[><t^][-_^][><t^]|x[dpo]+|[-\\\\/][_:][-\\\\/]|[\\[\\]][-_][\\[\\]]|\\b((хи)+х?|(хе)+х?|(ха)+х?)\\b)'
+tag=regex_tagger_factory(pattern)
+
+###### time.py #####
+from text_metrics.entities.base.regex_tag import regex_tagger_factory
+TAG_NAME='TIME'
+tag=regex_tagger_factory('\\b(0?[0-9]|1[0-9]|2[0-3])[:ч.,\\s-][0-5][0-9]\\b')
+
+###### url.py #####
+from urlextract import URLExtract
+from text_metrics.core.span import Span
+extractor=URLExtract()
+TAG_NAME='URL'
+def tag(text):return[Span(B,C,{'link':A})for(A,(B,C))in extractor.find_urls(text,get_indices=True)]
+
+###### natasha.py #####
+from natasha import MorphVocab,NewsEmbedding,NewsMorphTagger,Segmenter,Doc,AddrExtractor,MoneyExtractor,DatesExtractor
+segmenter=Segmenter()
+morph_vocab=MorphVocab()
+emb=NewsEmbedding()
+morph_tagger=NewsMorphTagger(emb)
+def create_doc(text):
+	A=Doc(text);A.segment(segmenter);A.tag_morph(morph_tagger)
+	for B in A.tokens:B.lemmatize(morph_vocab)
+	return A
+addr_extractor=AddrExtractor(morph_vocab)
+money_extractor=MoneyExtractor(morph_vocab)
+dates_extractor=DatesExtractor(morph_vocab)
+
+###### load_words.py #####
+import csv
+def from_csv(filepath,column_name):
+	A=column_name;B=set()
+	with open(filepath,'r',encoding='utf-8-sig')as D:
+		C=csv.DictReader(D)
+		if not A in C.fieldnames:raise ValueError(f"Колонка {A} отсутствует в csv")
+		for E in C:F=E[A];B.add(F)
+	return B
+	
+###### lds.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='lexical_diversity_per_sentence'
+METRIC_GROUP='text'
+def extract(context):A=context;B=sum(A for A in A.lexicon.values()if A==1);return B/A.pos.sentences_count
+
+###### lexicon_size.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='lexicon_size'
+METRIC_GROUP='text'
+def extract(context):A=context;return len(A.lexicon)/A.pos.sentences_count
+
+###### long_words_proportion.py #####
+from text_metrics.core.context import DocumentContext
+LONG_WORD_LENGTH=6
+METRIC_NAME='long_words_proportion'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return 0
+	B=sum(B for(A,B)in A.items()if len(A)>=LONG_WORD_LENGTH);C=A.total();return B/C
+	
+###### mean_words_length.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='mean_words_length'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return 0
+	B=sum(len(A)*B for(A,B)in A.items());C=A.total();return B/C
+	
+###### normalized_shannon_entropy.py #####
+from text_metrics.core.context import DocumentContext
+import math
+METRIC_NAME='normalized_shannon_entropy'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return .0
+	C=A.most_common(1)[0][1]
+	if C==1:return 1.
+	E=A.total();D=.0
+	for F in A.values():
+		B=F/E
+		if B>0:D-=B*math.log2(B)
+	return D/math.log2(C)
+	
+###### obscene_proportion.py #####
+from text_metrics.core.context import DocumentContext
+from text_metrics.lexicon.load_words import from_csv
+from pathlib import Path
+SOURCE_CSV=Path(__file__).parent.parent/'data'/'obscene.csv'
+COLUMN_NAME='Lemma'
+if not SOURCE_CSV.exists():raise FileNotFoundError(f"Файл {SOURCE_CSV} с перечнем самых частых слов не найден")
+obscene_words=from_csv(SOURCE_CSV,COLUMN_NAME)
+METRIC_NAME='obscene_proportion'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return 0
+	B=A.keys();C=B&obscene_words;D=sum([A[B]for B in C]);return D/A.total()
+	
+###### rare_proportion.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='rare_words_proportion'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return 0
+	B=sum(A for A in A.values()if A<=2);C=A.total();return B/C
+	
+###### ttr.py #####
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='type_token_ratio'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return 0
+	B=sum(A for A in A.values()if A==1);C=A.total();return B/C
+	
+###### unpopular_proportion.py #####
+from text_metrics.core.context import DocumentContext
+from text_metrics.lexicon.load_words import from_csv
+from pathlib import Path
+SOURCE_CSV=Path(__file__).parent.parent/'data'/'freq.csv'
+COLUMN_NAME='Lemma'
+if not SOURCE_CSV.exists():raise FileNotFoundError(f"Файл {SOURCE_CSV} с перечнем самых частых слов не найден")
+popular_words=from_csv(SOURCE_CSV,COLUMN_NAME)
+METRIC_NAME='unpopular_words_proportion'
+METRIC_GROUP='text'
+def extract(context):
+	A=context.lexicon
+	if not A:return 0
+	B=A.keys();C=B-popular_words;D=sum([A[B]for B in C]);return D/A.total()
+	
+###### loader.py #####
+from typing import List
+from pathlib import Path
+import importlib.util
+from..core.metric import Metric
+METRIC_NAME_ATTR='METRIC_NAME'
+METRIC_GROUP_ATTR='METRIC_GROUP'
+EXTRACT_FUNC_ATTR='extract'
+def load_from_file(file_path):
+	D=None;B=file_path
+	if B.name=='__init__.py'or not B.suffix=='.py':return
+	E=B.stem;C=importlib.util.spec_from_file_location(E,B)
+	if C is D or C.loader is D:return
+	A=importlib.util.module_from_spec(C);C.loader.exec_module(A)
+	if not hasattr(A,EXTRACT_FUNC_ATTR):return
+	F=getattr(A,EXTRACT_FUNC_ATTR);G=getattr(A,METRIC_NAME_ATTR,E);H=getattr(A,METRIC_GROUP_ATTR,D);return Metric(name=G,group=H,extract_func=F)
+def load_by_directories(directories):
+	B=[]
+	for A in directories:
+		if not A.exists():raise FileNotFoundError(f"Директория {A} не найдена")
+		for D in A.glob('*.py'):
+			C=load_from_file(D)
+			if C:B.append(C)
+	return B
+	
+###### consts.py #####
+set_of_puncts=set(',.-:"?()![];/~*_><&')
+
+###### index_of_formality_heylinger.py #####
+from collections import Counter
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='index_of_formality_heylinger'
+METRIC_GROUP='pos'
+def extract(context):
+	D=context.pos.get_series();E=Counter([A.data['pos']for A in D])
+	def A(pos):return E[pos]
+	B=A('NOUN')+A('ADJ')+A('ADP')+A('DET');F=A('PRON')+A('VERB')+A('ADV')+A('INTJ')+A('NUM');C=B+F
+	if C==0:return 50
+	return B/C*100
+	
+###### index_of_formality.py #####
+from collections import Counter
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='index_of_formality'
+METRIC_GROUP='pos'
+def extract(context):
+	B=context.pos.get_series();C=Counter([A.data['pos']for A in B])
+	def A(pos):return C[pos]
+	D=A('NOUN')+A('ADJ')+A('ADP');E=A('PRON')+A('VERB')+A('VERBPART')+A('VERBCONV')+A('PART')+A('ADV')+A('CCONJ')+A('SCONJ')+A('INTJ');F=(D-E+100)/2;return max(0,min(F,100))
+	
+###### index_of_formality_tuldava.py #####
+from collections import Counter
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='index_of_formality_tuldava'
+METRIC_GROUP='pos'
+def extract(context):
+	D=context.pos.get_series();E=Counter([A.data['pos']for A in D])
+	def A(pos):return E[pos]
+	B=A('NOUN')+A('ADJ');C=A('VERB')+A('ADV')+A('PRON')
+	if C==0:return 100 if B>0 else 50
+	F=B/C*100;return min(F,100)
+	
+###### pair_of_adv.py #####
+_A='pos'
+from text_metrics.core.context import DocumentContext
+METRIC_NAME='pair_of_adv_per_sentence'
+METRIC_GROUP=_A
+def extract(context):
+	F='ADV';C=context;D=C.pos.sentences_count
+	if D<1:return 0
+	E=0
+	for B in C.pos.seqs:
+		for A in range(1,len(B)):
+			G=B[A-1];H=B[A]
+			if G.data[_A]==F and H.data[_A]==F:E+=1;A+=2
+			else:A+=1
+	return E/D
+	
+###### transitions.py #####
+_B='ADJ-Pos'
+_A='PUNCT'
+from text_metrics.core.context import DocumentContext
+from text_metrics.core.span import Span
+from nltk import ConditionalFreqDist,bigrams
+import numpy as np
+transitions=[(_B,'NOUN'),('PROPN',_A),(_A,'SCONJ'),('ADP',_B),('ADP','PRON'),(_A,'ADV'),(_A,'PRON'),(_B,_A),(_A,'CCONJ')]
+METRIC_GROUP='pos'
+def extract(context):
+	B='code';E=context.pos.get_series(seq_start=Span(-1,-1,{B:'START'}),seq_end=Span(-1,-1,{B:'END'}));C=ConditionalFreqDist()
+	for(F,G)in bigrams([A.data[B]for A in E]):C[F][G]+=1
+	A=np.array([C[A][B]for(A,B)in transitions]);H=A.sum()
+	if H!=0:D=A/A.sum()
+	else:D=np.zeros_like(A)
+	return dict(zip(transitions,D.tolist()))
+	
+###### pos_tagger.py #####
+from..core.span import Span
+def __get_feat(token,feature):return token.feats.get(feature,'None')
+def __get_code(token):
+	A=token;B=A.pos;C=B
+	if B=='ADJ':C=f"ADJ-{__get_feat(A,"Degree")}"
+	elif B=='PART':C=f"PART-{__get_feat(A,"Polarity")}"
+	elif B=='VERB':D=__get_feat(A,'VerbForm');E=__get_feat(A,'Voice');F=__get_feat(A,'Tense');C=f"VERB-{D}-{E}-{F}"
+	return C
+def __get_span(token):A=token;B=A.pos;C=__get_code(A);return Span(A.start,A.stop,{'pos':B,'code':C,'text':A.text})
+def tag(doc,entity_tagger):
+	B=[];C=[]
+	for E in doc.sents:
+		D=[]
+		for A in E.tokens:
+			if not entity_tagger.is_contains(A.start,A.stop):D.append(__get_span(A));C.append(A.lemma)
+		B.append(D)
+	return B,C
+	
+###### processor.py #####
+from pathlib import Path
+from.entities.TaggerLoader import TaggerLoader
+from.metrics.loader import load_by_directories
+from.documents.doc import extract_metrics
+tagger_names=['email','url','hashtag','phone','address_re','address_natasha','date_re','date_natasha','timemeasurement_natasha','measurement_re','enum','number','pointer','quote','smile','punct_emotion','foreign']
+taggers=TaggerLoader().load_by_tagger_names(tagger_names)
+metric_dirs=['./documents/metrics','./entities/metrics','./lexicon/metrics','./pos/metrics','./punct/metrics']
+base_dir=Path(__file__).parent.resolve()
+metric_paths=[(base_dir/Path(A)).resolve()for A in metric_dirs]
+metrics=load_by_directories(metric_paths)
+def extract(text):A=text;A=A.replace('ё','е');return extract_metrics(A,taggers,metrics)
+def flat_metrics(metrics):
+	A={}
+	for(B,C)in metrics.items():
+		for(D,E)in C.items():F=f"{B}__{D}";A[F]=E
+	return A

@@ -1,0 +1,34 @@
+@startuml component_diagram
+left to right direction
+
+package "Web API" #lightblue {
+  HTTP - [FastAPI]  
+  [FastAPI] - [APIHandler]
+}
+
+package "Text Processing" #lightblue {
+  [Document Processor] as DocProcessor
+  [Natasha Library] as Natasha
+}
+
+package "Data Storage" #lightblue {
+  [PostgreSQL] as PostgreSQL
+}
+
+package "Worker" #lightblue {
+  [Predictor] as Predictor
+  [JobWorker]
+}
+
+APIHandler --> PostgreSQL : добавляет задачу обработки текста
+JobWorker -> PostgreSQL : обрабатывает задачи
+
+JobWorker --> DocProcessor : использует
+JobWorker -> Predictor : использует
+DocProcessor -> Natasha : вызывает для NLP-обработки
+
+interface "REST API" as REST
+
+HTTP ..> REST
+
+@enduml
