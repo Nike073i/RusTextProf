@@ -1,0 +1,7 @@
+﻿Подвыборка,Модель,Стандартное отклонение
+long        ,bygender_lr        ,0.026
+short       ,bygender_svc_rbf   ,0.029
+men         ,bygender_mlp       ,0.023
+women       ,nb                 ,0.024
+young       ,bygender_gbm       ,0.036
+old         ,nb                 ,0.027

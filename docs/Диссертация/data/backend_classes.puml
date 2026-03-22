@@ -1,0 +1,40 @@
+@startuml backend
+left to right direction
+
+class Request {
+  +text: str
+  +model: Optional[str]
+}
+class Job {
+  +job_id: UUID
+  +status: Enum{PENDING, PROCESSING, READY, FAILED}
+  +result: json
+  +created_at: DateTime
+  +updated_at: DateTime
+}
+class JobStore {
+  +save_job(job: Job)
+  +get_job(job_id): Job
+  +update_job(job_id, status, result_location)
+}
+class Worker {
+  +run()
+  -process_job(job: Job)
+}
+class DocumentProcessor {
+  +extract(text) : dict
+}
+class Predictor {
+  +predict(metrics) : Tuple[ClassPrediction, ClassPrediction]
+}
+
+APIHandler --> Request : Получает
+APIHandler --> Job : Создает задачу
+APIHandler --> JobStore : Сохраняет задачу
+Worker --> JobStore : Получает задачу
+Worker --> JobStore : Берет задачу на выполнение
+Worker --> DocumentProcessor : Извлекает признаки
+Worker --> Predictor : Профилирует
+Worker --> JobStore : Сохраняет результат(status=READY, result)
+APIHandler --> JobStore : Загружает задачу
+@enduml

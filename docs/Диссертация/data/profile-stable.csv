@@ -1,0 +1,7 @@
+﻿Подвыборка,Модель,Стандартное отклонение
+long        ,GBM,0.023
+short       ,SVC (POLY),0.029
+men         ,GBM,0.029
+women       ,MLP,0.031
+young       ,SVC (POLY),0.036
+old         ,NB,0.016

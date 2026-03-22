@@ -1,0 +1,14 @@
+---
+title: Обработка документа
+---
+graph TD	
+	dataset[ Документ из RusIdiolect ] --> clean_html[ Удалить остатки разметки ]
+	clean_html --> document[ Документ для анализа ] 
+	input[ Пользовательский ввод ] --> document
+	document --> check_invalid[ Документ содержит структурные ошибки ]
+	check_invalid -->|Да| remove_invalid["Не подлежит обработке. Удалить|Отклонить"]
+	example_invalid_doc@{ shape: braces, label: "Нечетное кол-во кавычек\nВне границ допустимой длины" } --> check_invalid
+	
+	check_invalid -->|Нет| replace_e["Заменить ё на е<br/>Разбить на предложения"]
+	replace_e --> tag_entity["Выделить сущности<br/>Лематизация"]
+	tag_entity --> lemmatize["Выделить POS-части<br/>Собрать лексикон<br/>Извлечь признаки"]
