@@ -1,0 +1,14 @@
+﻿model,diff_gender,diff_age,diff_length
+cascade_nb_gbm,-0.018,0.027,0.014
+cascade_svc_poly_gbm,-0.016,0.022,0.004
+cascade_svc_poly_lr,-0.021,0.035,0.006
+cascade_svc_poly_svc_rbf,-0.010,0.012,0.032
+flat_gbm,0.020,0.040,0.034
+flat_knn,0.033,0.101,0.018
+flat_lr,-0.012,0.037,0.018
+flat_mlp,0.050,0.112,0.007
+flat_nb,-0.007,0.082,0.017
+flat_rf,-0.034,0.042,0.015
+flat_svc_linear,-0.062,0.021,0.028
+flat_svc_poly,-0.054,0.061,0.026
+flat_svc_rbf,0.056,0.111,0.033

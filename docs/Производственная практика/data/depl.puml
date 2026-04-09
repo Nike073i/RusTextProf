@@ -1,0 +1,35 @@
+@startuml deployment_diagram
+
+node "Клиентское устройство" <<device>> as WebClient {
+  artifact "client.js" as Browser
+}
+
+node "Веб-сервер" <<executionEnvironment>> as WebServer
+
+node "Сервер приложения" <<executionEnvironment>> as AppServer {
+  interface "ApiHandler" as APIHandler
+  artifact "app.py" as App
+}
+
+node "Сервер обработки" <<executionEnvironment>> as WorkerServer {
+  artifact "worker.py" as Celery
+}
+
+node "База данных" <<executionEnvironment>> as DBServer {
+  database "PostgreSQL" as PostgreSQL
+}
+
+WebClient --> WebServer : HTTP/HTTPS
+WebServer --> APIHandler : HTTP/HTTPS
+APIHandler -> App : Invoke
+App --> PostgreSQL : SQL
+WorkerServer --> PostgreSQL : SQL
+
+note right of WebServer
+  Nginx/Apache
+  Статический контент, JS-клиент и
+  проксирование к бэкенду
+  Балансировка нагрузки
+end note
+
+@enduml

@@ -1,0 +1,40 @@
+@startuml seq
+actor "Клиент" as Client
+participant "APIHandler" as API
+participant "RequestValidator" as Validator
+participant "JobStore" as Store
+participant "Worker" as Worker
+participant "Document\nProcessor" as Processor
+participant "Predictor" as Model
+
+Client -> API: POST /predict (text, model_id)
+API -> Validator: validate_request(text)
+Validator -> API: validation_result
+
+alt validation failed
+    API -> Client: 400 Bad Request
+else validation success
+    API -> Store: create_job(text, model_id)
+    Store -> API: job_id
+    API -> Client: 202 Accepted (job_id)
+    
+    Store -> Worker: job_data
+    Worker -> Store: update_status(\n"PROCESSING")
+    
+    Worker -> Processor: extract(job_data.text)
+    Processor -> Worker: metrics
+    
+    Worker -> Model: predict(metrics)
+    Model -> Worker: profile
+    
+    Worker -> Store: save_result(profile, \n"COMPLETED")
+
+end
+
+Client -> API: GET /result/{job_id}
+API -> Store: get_job_result(job_id)
+Store -> API: result_data
+API -> Client: 200 OK (profile_data)
+
+    
+@enduml
