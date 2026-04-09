@@ -1,0 +1,10 @@
+﻿model        ,p_value,   levene_statistic
+gbm          ,0.499,0.883
+knn          ,0.286,1.281
+lr           ,0.765,0.513
+mlp          ,0.866,0.372
+nb           ,0.083,2.074
+rf           ,0.562,0.789
+svc_linear   ,0.825,0.431
+svc_poly     ,0.749,0.534
+svc_rbf      ,0.961,0.200

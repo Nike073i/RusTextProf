@@ -1,0 +1,108 @@
+@startuml nlp
+
+struct Span {
+  +start: int
+  +end: int
+  +data: object
+}
+
+class SpanTree {
+  -tree: IntervalTree
+  +try_add(start, end, data): bool
+  +overlap(start, end): bool
+  +get_spans(): List[Span]
+}
+
+SpanTree "1" *-- "1" IntervalTree : управляет
+SpanTree "1" ..> "*" Span : создает
+
+struct DocumentStat {
+  +symbols_length: int
+}
+
+struct EntitiesStat {
+  +spans: Dict[str, List[Span]]
+  +entities_width: int
+}
+
+struct PosStat {
+  +seqs: List[List[Span]]
+  +senences_count: int
+  +get_series(seq_start, seq_end): List[Span]
+}
+
+struct DocumentContext {
+  +lexicon: Counter
+  +document_stat: DocumentStat
+  +entities: EntitiesStat
+  +pos: PosStat
+}
+
+PosStat "1" o-- "*" Span
+EntitiesStat "1" o-- "*" Span
+DocumentContext "1" o- "1" DocumentStat
+DocumentContext "1" o-- "1" EntitiesStat
+DocumentContext "1" o-- "1" PosStat
+
+interface Metric {
+  +name: str
+  +group: str
+  +extract(DocumentContext): Union[Dict, float] 
+}
+class MetricLoader {
+  +load_from_file(Path): Optional[Metric]
+  +load_by_directories(List[Path]): List[Metric]
+}
+
+MetricLoader ...> Metric : загружает
+
+class MetricExtractor {
+  -metrics: List[Metric]
+  +extract(DocumentContext): Dict[str, float]
+}
+
+MetricExtractor o-- Metric
+
+interface Tagger {
+  +name: str
+  +tag(str): List[Span]
+}
+
+class EntityTagger {
+  -taggers: List[Tagger]
+  -tree: SpanTree
+  +is_contains(start,end): bool
+  +get_entities(): List[Span]
+  +tag(text)
+}
+
+EntityTagger "1" *-- "1" SpanTree : управляет
+EntityTagger "*" o-- "*" Tagger
+
+class TaggerLoader {
+  -load_from_file(Path): Optional[Tagger]
+  +load_by_tagger_names(List[str]): List[Tagger]
+  +get_tagger_names(): Set[str]
+}
+
+TaggerLoader ...> Tagger : загружает
+
+class PosTagger {
+  +tag(EntityTagger): (List[List[Span]], List[str])
+}
+
+class NatashaAdapter {
+  +create_doc(text): Doc
+}
+
+class DocumentProcessor {
+  +extract(str, List[Tagger], List[Metric]): dict
+}
+
+DocumentProcessor ---> EntityTagger
+DocumentProcessor -> PosTagger
+DocumentProcessor --> NatashaAdapter
+DocumentProcessor -> DocumentContext
+DocumentProcessor -> MetricExtractor
+
+@enduml

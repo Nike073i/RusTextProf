@@ -1,0 +1,30 @@
+@startuml UC
+left to right direction
+
+actor "API-клиент" as Client
+actor "Веб-пользователь" as WebUser
+
+rectangle "Система автоматического профилирования" as ProfileSystem {
+  usecase UC1 [
+Отправить текст на профилирование
+---
+<b>Extension Points
+Выбрали модель
+]
+  usecase "Получить результат по ID задачи" as UC2
+  usecase "Выбрать модель классификации" as UC3
+  usecase "Просмотреть информацию о модели" as UC4
+  usecase "Извлечь метрики из текста" as UC5
+}
+
+
+Client <|- WebUser
+
+Client --"0..*" UC1
+Client --"0..*" UC2
+Client --"0..*" UC5
+WebUser --"0..*" UC4
+
+UC3 .> UC1 : <<extend>>
+
+@enduml
